@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>	
+	<title>Pump Auto Switch</title>
+</head>
+<body>
+	<div class="container mt-4 text-center">
+		<div class="card mx-auto rounded-3 shadow" style="width: 18rem;">
+			<div id='alertMain' class="alert alert-warning" role="alert">Обновление...</div>
+			<div class="card-body">
+				<h5 class="card-title">Pump Auto Switch</h5>
+				<h6 id="tempLabel" class="card-subtitle mb-2 text-muted">Температура ---°C</h6>
+				<h6 id="onTimeLabel" class="card-subtitle mb-2 text-muted">Насос включается на -- минут.</h6>
+				<h6 id="currentDate" class="card-subtitle mb-2 text-muted">--:--:--</h6>
+			</div>
+			<ul class="list-group list-group-flush">
+				<li id="pumpState" class="list-group-item">Насос выключен.</li>
+				<li id="timeoutState" class="list-group-item">Таймаут -- минут неактивен.</li>
+				<button id="settingsButton" type="button" class="list-group-item list-group-item-action list-group-item-secondary">Настройки</button>
+				<button id="btn_reset_pump" type="button" class="list-group-item list-group-item-action list-group-item-danger">Сброс таймера насоса</button>
+				<button id="btn_reset_timeout" type="button" class="list-group-item list-group-item-action list-group-item-danger">Сброс таймера таймаута</button>
+			</ul>
+		</div>
+	</div>
+	<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="settingsModalLabel">Настройки</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="row g-3">
+					  <div class="col-12">
+						<label for="tempRange" class="form-label" id="tempRangeLabel">Температура - ---°C</label>
+						<input type="range" class="form-range" min="0" max="125" id="tempRange">
+					  </div>
+					  <div class="col-12">
+						<label for="timeoutRange" class="form-label" id="timeoutRangeLabel">Таймаут - -- минут</label>
+						<input type="range" class="form-range" min="0" max="120" id="timeoutRange">
+					  </div>
+					  <div class="col-12">
+						<label for="pumpTime" class="form-label" id="pumpTimeLabel">Время работы насоса - -- минут</label>
+						<input type="range" class="form-range" min="1" max="60" id="pumpTime">
+					  </div>
+					  <div class="col-12">
+						<div class="form-check form-switch">
+						  <input class="form-check-input" type="checkbox" id="disablePumpCB">
+						  <label class="form-check-label" for="disablePumpCB">Отключать насос если температура падает на значение</label>
+						</div>
+					  </div>
+					  <div class="col-12">
+						<label for="offTemp" class="form-label" id="offTempLabel">Выключать насос если температура упадёт на --°C</label>
+						<input type="range" class="form-range" min="5" max="60" id="offTemp">
+						<div id="offTempHelpBlock" class="form-text">
+						  Если во время работы насоса температура упадёт на это значение, то насос будет выключен досрочно.
+						</div>
+					  </div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+					<button id="saveBtn" type="button" class="btn btn-primary">Сохранить</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	<script crossorigin="anonymous" src="/func.js"></script>
+</body>
+</html>
