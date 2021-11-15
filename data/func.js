@@ -3,8 +3,9 @@ jQuery(document).ready(function () {
 	  keyboard: false
 	});
 	$('#settingsButton').click(function () {
-		$.get( "/get_settings", function(data) {
-			var response = JSON.parse(data);
+		$('#settingsButton').html('<div class="spinner-border spinner-border-sm text-danger" role="status"><span class="visually-hidden">Загрузка...</span></div>');
+		$('#settingsButton').prop('disabled', true);
+		$.get( "/get_settings", function(response) {
 			$('#tempRange').val(response.temperature);
 			$("#tempRange" ).change();
 			$('#timeoutRange').val(response.timeoutTime);
@@ -16,27 +17,29 @@ jQuery(document).ready(function () {
 			$('#offTemp').val(response.diffTemp);
 			$("#offTemp" ).change();
 			settingsModal.show();
+			$('#settingsButton').html('Настройки');
+			$('#settingsButton').prop('disabled', false);
 		});
 		return false;
 	});
-	$( "#tempRange" ).change(function() {
+	$(document).on('input change', '#tempRange', function() {
 		$('#tempRangeLabel').html("Температура - " + $( "#tempRange" ).val() + "°C");
 	});
-	$( "#timeoutRange" ).change(function() {
-		$('#timeoutRangeLabel').html("Таймаут - " + $( "#timeoutRange" ).val() + " минут");
+	$(document).on('input change', '#timeoutRange', function() {
+		$('#timeoutRangeLabel').html("Таймаут - " + $( "#timeoutRange" ).val() + declOfNum($( "#timeoutRange" ).val(), [' минута',' минуты',' минут']));
 	});
-	$( "#pumpTime" ).change(function() {
-		$('#pumpTimeLabel').html("Время работы насоса - " + $( "#pumpTime" ).val() + " минут");
+	$(document).on('input change', '#pumpTime', function() {
+		$('#pumpTimeLabel').html("Время работы насоса - " + $( "#pumpTime" ).val() + declOfNum($( "#pumpTime" ).val(), [' минута',' минуты',' минут']));
 	});
 	$( "#disablePumpCB" ).change(function() {
 		$('#offTemp').prop('disabled', !$('#disablePumpCB').prop('checked'));
 	});
-	$( "#offTemp" ).change(function() {
-		$('#offTempLabel').html("Выключать насос если температура упадёт на " + $( "#offTemp" ).val() + "°C");
+	$(document).on('input change', '#offTemp', function() {
+		$('#offTempLabel').html("Отключать насос если температура упадёт на " + $( "#offTemp" ).val() + "°C");
 	});
 	$('#saveBtn').click(function () {
 		$('#saveBtn').html('<div class="spinner-border spinner-border-sm text-light" role="status"><span class="visually-hidden">Загрузка...</span></div>');
-		$.get( "/put_settings", { pumpTime: $( "#pumpTime" ).val(), timeoutTime: $( "#timeoutRange" ).val(), temperature: $( "#tempRange" ).val(), turnOffPump: $('#disablePumpCB').prop('checked'), diffTemp: $( "#offTemp" ).val() }, function(data) {
+		$.post( "/put_settings", { pumpTime: $( "#pumpTime" ).val(), timeoutTime: $( "#timeoutRange" ).val(), temperature: $( "#tempRange" ).val(), turnOffPump: $('#disablePumpCB').prop('checked'), diffTemp: $( "#offTemp" ).val() }, function(data) {
 			if(data == "ok"){
 				$('#saveBtn').html('Сохранить');
 				settingsModal.hide();
@@ -46,29 +49,24 @@ jQuery(document).ready(function () {
 	});
 	var myVar = setInterval(myTimer, 1000);
 	function myTimer() {
-		var d = new Date();
-		var t = d.toLocaleTimeString();
-		$('#currentDate').html(t);
-		$.get( "/get_state", function(data) {
-			var response = JSON.parse(data);
+		$.get( "/get_state", function(response) {
+			$('#rssiProgress').css('width', response.rssi + "%");
+			$('#rssiProgress').html("Качество связи " + response.rssi + "%");
 			$('#tempLabel').html('Температура ' + response.temperature + '°C');
-			$('#onTimeLabel').html('Насос включается на ' + response.pumpTime + ' минут.');
 			if(response.pump_state){
-				$('#pumpState').html('Насос включен.');
+				$('#pumpState').html('Насос включен.<br>До конца ' + millisToMinutesAndSeconds(response.pumpLeft) + '.');
 				$('#pumpState').addClass('active');
 			}else{
 				$('#pumpState').html('Насос выключен.');
 				$('#pumpState').removeClass('active');
 			}
 			if(response.timeout_state){
-				$('#timeoutState').html('Таймаут ' + response.timeoutTime + ' минут активен.');
+				$('#timeoutState').html('Таймаут активен.<br>До конца ' + millisToMinutesAndSeconds(response.timeoutLeft) + '.');
 				$('#timeoutState').addClass('active');
 			}else{
-				$('#timeoutState').html('Таймаут ' + response.timeoutTime + ' минут неактивен.');
+				$('#timeoutState').html('Таймаут неактивен.');
 				$('#timeoutState').removeClass('active');
 			}
-			//console.log(response);
-			//location.reload();
 		});
 	}
 	myTimer();
@@ -76,27 +74,45 @@ jQuery(document).ready(function () {
 		$('#alertMain').slideUp( 'slow' );
 	}, 1000);
 	$('#btn_reset_pump').click(function () {
+		$('#btn_reset_pump').html('<div class="spinner-border spinner-border-sm text-danger" role="status"><span class="visually-hidden">Загрузка...</span></div>');
+		$('#btn_reset_pump').prop('disabled', true);
 		$.get( "/reset_pump", function(data) {
 			$('#alertMain').html('Таймер насоса сброшен.');
 			$('#alertMain').slideDown( 'slow' );
 			setTimeout(function () {
 				$('#alertMain').slideUp( 'slow' );
 			}, 2000);
-		  console.log(data);
-		  //location.reload();
+			$('#btn_reset_pump').html('Сброс таймера насоса');
+			$('#btn_reset_pump').prop('disabled', false);
 		});
 		return false;
 		});
 	$('#btn_reset_timeout').click(function () {
+		$('#btn_reset_timeout').html('<div class="spinner-border spinner-border-sm text-danger" role="status"><span class="visually-hidden">Загрузка...</span></div>');
+		$('#btn_reset_timeout').prop('disabled', true);
 		$.get( "/reset_timeout", function(data) {
 			$('#alertMain').html('Таймаут сброшен.');
 			$('#alertMain').slideDown( 'slow' );
 			setTimeout(function () {
 				$('#alertMain').slideUp( 'slow' );
 			}, 2000);
-			console.log(data);
-			//location.reload();
+			$('#btn_reset_timeout').html('Сброс таймера таймаута');
+			$('#btn_reset_timeout').prop('disabled', false);
 		});
 		return false;
 	});
+	function declOfNum(number, titles) {
+		cases = [2, 0, 1, 1, 1, 2];
+		return titles[ (number%100>4 && number%100<20)? 2 : cases[(number%10<5)?number%10:5] ];
+	}
+	function millisToMinutesAndSeconds(millis) {
+		var seconds = millis / 1000;
+		if (seconds >= 60){
+			var minutes = Math.floor(seconds / 60) + 1;
+			return minutes + declOfNum(minutes, [' минута',' минуты',' минут']);
+		}else{
+			var seconds = (seconds % 60).toFixed(0);
+			return seconds + declOfNum(seconds, [' секунда',' секунды',' секунд']);
+		}
+	}
 });
